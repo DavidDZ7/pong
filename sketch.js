@@ -5,10 +5,16 @@ https://github.com/DavidDZ7/pong
 August 2023
  */
 
+backgroundColor='#444444'
 leftColor='#CC0000';
 rightColor='#00CC00';
 ballColor="#0000CC";
-ballSpeed=4;
+
+leftPaddle=null
+rightPaddle=null
+ball1=null
+leftScore=null
+rightScore=null
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -20,7 +26,7 @@ function setup() {
 }
 
 function draw() {
-  background(220);
+  background(backgroundColor);
   leftPaddle.show();
   rightPaddle.show();
 
@@ -94,52 +100,62 @@ function checkKeys() {
 
 class ball{
   constructor(){
-    this.x=windowWidth/2;
-    this.y=windowHeight/2;
     this.diameter=40;
     this.color=ballColor;
-    this.speed=ballSpeed;
-    this.Xdirection=-1;
-    this.Ydirection=-1;
+    this.speed=max(5,0.008*windowWidth);//speed should increase for larger window width
+    this.direction=-1;
+    this.reset(this.direction);
+  }
+
+  reset(direction){
+    this.x=windowWidth/2;
+    this.y=windowHeight/2;
+    let angle=random(-Math.PI/4,Math.PI/4)//between -45 and 45 degrees
+    this.Xspeed=this.speed*cos(angle)*direction;//direction is -1 or 1
+    this.Yspeed=this.speed*sin(angle);
   }
 
   show(){
     fill(this.color);
-    strokeWeight(0); 
+    strokeWeight(4); 
     circle(this.x, this.y, this.diameter);
   }
 
   update(leftPaddle,rightPaddle){
-    this.x=this.x+this.Xdirection*this.speed;
-    this.y=this.y+this.Ydirection*this.speed;
+    this.x=this.x+this.Xspeed;
+    this.y=this.y+this.Yspeed;
     //ensure ball bounces when hitting top of window:
     if(this.y-this.diameter/2<=0){
       this.y=this.diameter/2;
-      this.Ydirection=1;}
+      this.Yspeed=abs(this.Yspeed);}
     //ensure ball bounces when hitting bottom of window:
     else if(this.y+this.diameter/2>=windowHeight){
       this.y=windowHeight-this.diameter/2;
-      this.Ydirection=-1;}    
+      this.Yspeed=-1*this.Yspeed;}    
     //ensure ball bounces when hitting left paddle:
     if(this.y>=leftPaddle.y-leftPaddle.height/2 && this.y<=leftPaddle.y+leftPaddle.height/2 && (this.x-this.diameter/2)<=1.5*leftPaddle.width){
-      this.Xdirection=1
+      let normalizedCenterDiff=(leftPaddle.y-this.y)/leftPaddle.height//[-1,1] range
+      let angle=(Math.PI/4)*normalizedCenterDiff //range [-45,45] degrees
+      this.Yspeed=this.speed*sin(angle)
+      this.Xspeed=abs(this.speed*cos(angle))//move to right
     }
     //ensure ball bounces when hitting right paddle:
     else if (this.y>=rightPaddle.y-rightPaddle.height/2 && this.y<=rightPaddle.y+rightPaddle.height/2 && (this.x+this.diameter/2)>=windowWidth-1.5*rightPaddle.width){
-      this.Xdirection=-1;
+      let normalizedCenterDiff=(rightPaddle.y-this.y)/rightPaddle.height//[-1,1] range
+      let angle=(Math.PI/4)*normalizedCenterDiff //range [-45,45] degrees
+      this.Yspeed=this.speed*sin(angle)
+      this.Xspeed=-1*this.speed*cos(angle)//move to left
     }
   }
 
   checkIfScored(){
-    //check when player scores (ball outside min X or max X):
+    //check when player scores (ball x coordinate less or greater than window dimentions):
     if (this.x-this.diameter/2<=0){//Right player has scored
-      this.x=windowWidth/2;
-      this.y=windowHeight/2;
+      this.reset(-1);//reset and move to left
       return "right";
     }
     else if (this.x+this.diameter/2>=windowWidth){//left player has scored
-      this.x=windowWidth/2;
-      this.y=windowHeight/2;
+      this.reset(1);//reset and move to right
       return "left";
     }
 
@@ -168,4 +184,15 @@ class scoreText{
     var s='SCORE: '+str(this.score);
     text(s,this.x,this.y);
   }
+}
+
+
+function windowResized() {//restart game if window is resized
+  resizeCanvas(windowWidth, windowHeight);
+  leftPaddle=null
+  rightPaddle=null
+  ball1=null
+  leftScore=null
+  rightScore=null
+  setup()
 }
