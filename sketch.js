@@ -27,6 +27,7 @@ function setup() {
 
 function draw() {
   background(backgroundColor);
+  showGameInstructions();
   leftPaddle.show();
   rightPaddle.show();
 
@@ -43,6 +44,47 @@ function draw() {
   rightScore.show();
 
   checkKeys();
+}
+
+function showGameInstructions(){
+  let instructions="Left player: W, S | Right player: UP, DOWN"
+  strokeWeight(0);
+  textSize(25);
+  let textWidth_ = textWidth(instructions);
+  let textHeight_ = textAscent(instructions) + textDescent(instructions);
+  //display a background rectangle for the instructions
+  fill(150);
+  rectMode('corner')
+  rect(x=0,y=windowHeight-textHeight_-7,h=windowWidth,w=textHeight_)
+  //display the instructions centered at the bottom
+  fill(20);
+  text(instructions,x=windowWidth/2-textWidth_/2,y=windowHeight-textHeight_/2);
+}
+
+function checkKeys() {
+  // right paddle
+  if (keyIsDown(UP_ARROW)) {
+    rightPaddle.update(direction=-1); // Move the object up
+  } else if (keyIsDown(DOWN_ARROW)) {
+    rightPaddle.update(direction=1); // Move the object down
+  }
+  // left paddle
+  if (keyIsDown(87)) {//W -> 87 ASCII key code
+    leftPaddle.update(direction=-1); // Move the object up
+  } else if (keyIsDown(83)) {//S -> 83 ASCII key code
+    leftPaddle.update(direction=1); // Move the object down
+  }
+}
+
+
+function windowResized() {//restart game if window is resized
+  resizeCanvas(windowWidth, windowHeight);
+  leftPaddle=null
+  rightPaddle=null
+  ball1=null
+  leftScore=null
+  rightScore=null
+  setup()
 }
 
 
@@ -79,22 +121,6 @@ class paddle{
     this.y=min(max(this.y,this.height/2),windowHeight-this.height/2);
   }
 
-}
-
-
-function checkKeys() {
-  // right paddle
-  if (keyIsDown(UP_ARROW)) {
-    rightPaddle.update(direction=-1); // Move the object up
-  } else if (keyIsDown(DOWN_ARROW)) {
-    rightPaddle.update(direction=1); // Move the object down
-  }
-  // left paddle
-  if (keyIsDown(87)) {//W -> 87 ASCII key code
-    leftPaddle.update(direction=-1); // Move the object up
-  } else if (keyIsDown(83)) {//S -> 83 ASCII key code
-    leftPaddle.update(direction=1); // Move the object down
-  }
 }
 
 
@@ -184,15 +210,4 @@ class scoreText{
     var s='SCORE: '+str(this.score);
     text(s,this.x,this.y);
   }
-}
-
-
-function windowResized() {//restart game if window is resized
-  resizeCanvas(windowWidth, windowHeight);
-  leftPaddle=null
-  rightPaddle=null
-  ball1=null
-  leftScore=null
-  rightScore=null
-  setup()
 }
